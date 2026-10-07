@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1b1b47" />
+  <title>Dashboard — Inscriptions</title>
+  <style>
+    :root {
+      --bg: #101335;
+      --panel: rgba(24, 27, 68, 0.94);
+      --line: rgba(255,255,255,0.12);
+      --ink: #f5f7ff;
+      --muted: #bcc5ed;
+      --muted-2: #9aa7d9;
+      --success: #7df0b2;
+      --warning: #ffd06f;
+      --danger: #ff7d7d;
+      --shadow: rgba(8, 9, 20, 0.38);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,sans-serif; font-size:15px; background:linear-gradient(180deg,#17193d 0%,#0f1234 30%,#0b0d23 100%); color:var(--ink); }
+    .page-shell { max-width: 1220px; margin: 30px auto; padding: 0 18px 26px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:18px; background:rgba(18,22,54,.9); border:1px solid var(--line); border-radius:18px; padding:18px 22px; box-shadow:0 16px 30px var(--shadow); }
+    .brand { display:flex; align-items:center; gap:12px; font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    .brand-mark { width:34px; height:34px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,#e3e8ff,#a7b4ff); color:#111633; font-size:18px; font-weight:900; }
+    .brand small { display:block; margin-top:4px; letter-spacing:.18em; font-size:9px; color:var(--muted); }
+    .topbar-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .pill { padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,0.03); color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .button { border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:10px 14px; background:rgba(255,255,255,0.02); color:var(--ink); cursor:pointer; font-weight:700; font-size:13px; }
+    .button.primary { background:linear-gradient(135deg,#edf1ff,#bcc6ff); color:#101735; border-color:transparent; }
+    .button.danger { background:rgba(255,125,125,0.08); border-color:rgba(255,125,125,0.2); color:#ffb6b6; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-top:22px; }
+    .stat-card { background:rgba(22,25,62,0.94); border:1px solid var(--line); border-radius:16px; padding:18px 16px; box-shadow:0 12px 26px rgba(0,0,0,0.12); }
+    .stat-card .label { display:block; margin-bottom:12px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted-2); font-weight:700; }
+    .stat-card strong { display:block; font-size:32px; line-height:1.1; letter-spacing:-.05em; }
+    .stat-card span { display:block; margin-top:8px; color:var(--muted); font-size:12px; }
+    .panel { margin-top:22px; background:rgba(22,25,62,0.94); border:1px solid var(--line); border-radius:18px; box-shadow:0 16px 30px rgba(0,0,0,0.1); }
+    .panel-header { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:22px 22px 18px; border-bottom:1px solid var(--line); }
+    .panel-title { margin:0; font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:800; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:18px 22px; }
+    .searchbox { position:relative; flex:1 1 260px; max-width:420px; }
+    .searchbox input { width:100%; padding:12px 14px 12px 42px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,0.02); color:var(--ink); outline:none; font-size:14px; }
+    .searchbox input::placeholder { color:var(--muted-2); }
+    .searchbox:before { content:"⌕"; position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted-2); font-size:18px; }
+    select { background:rgba(255,255,255,0.02); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:11px 12px; outline:none; font-size:14px; }
+    .table-wrap {
+      overflow-y: auto;
+      overflow-x: auto;
+      max-height: 620px;
+      padding: 0 22px 20px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+    .table-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+    table { width:100%; border-collapse:collapse; min-width:920px; }
+    th, td { text-align:left; padding:15px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: rgba(22,25,62,0.96);
+      backdrop-filter: blur(6px);
+      color:var(--muted-2); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:800;
+    }
+    td { font-size:14px; }
+    .person { display:flex; align-items:center; gap:12px; }
+    .avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,#e2e8ff,#aac0ff); color:#101633; font-size:12px; font-weight:800; }
+    .name { margin:0; font-weight:700; }
+    .meta { font-size:12px; color:var(--muted); margin-top:3px; }
+    .badge { display:inline-flex; border-radius:999px; padding:7px 10px; border:1px solid transparent; font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+    .badge.valid { background:rgba(125,240,178,0.08); color:var(--success); border-color:rgba(125,240,178,0.18); }
+    .badge.pending { background:rgba(255,207,112,0.08); color:var(--warning); border-color:rgba(255,207,112,0.18); }
+    .badge.refused { background:rgba(255,125,125,0.08); color:#ffb7b7; border-color:rgba(255,125,125,0.2); }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .table-btn { border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,0.02); color:var(--ink); cursor:pointer; padding:8px 10px; font-size:12px; font-weight:700; }
+    .table-btn.delete { background:rgba(255,125,125,0.06); border-color:rgba(255,125,125,0.2); color:#ffb9b9; }
+    .empty { display:none; text-align:center; color:var(--muted); font-size:14px; padding:28px 10px 10px; }
+    .empty.show { display:block; }
+    @media (max-width:760px){ .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .topbar{flex-direction:column; align-items:flex-start;} .toolbar{align-items:stretch;} .searchbox, select{width:100%; max-width:none;} }
+    @media (max-width:480px){ .stats-grid{grid-template-columns:1fr;} .page-shell{padding:0 14px 18px;} .panel-header, .toolbar, .table-wrap{padding-left:16px; padding-right:16px;} }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">P</span>
+        <div>PPP Executive<small>Gestion</small></div>
+      </div>
+      <div class="topbar-actions">
+        <span class="pill">Inscriptions</span>
+        <button class="button" type="button" id="exportBtn">Exporter Excel</button>
+        <button class="button primary" type="button">Ajouter</button>
+      </div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card"><span class="label">Total</span><strong id="totalCount">0</strong><span>personnes inscrites</span></div>
+      <div class="stat-card"><span class="label">Validées</span><strong id="validCount">0</strong><span>acceptées</span></div>
+      <div class="stat-card"><span class="label">En attente</span><strong id="pendingCount">0</strong><span>à traiter</span></div>
+      <div class="stat-card"><span class="label">Refusées</span><strong id="refusedCount">0</strong><span>non retenues</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Personnes enregistrées</h2>
+        <button class="button danger" type="button" id="deleteSelectedBtn">Supprimer sélection</button>
+      </div>
+      <div class="toolbar">
+        <div class="searchbox"><input id="searchInput" type="text" placeholder="Rechercher un nom, email ou formation" /></div>
+        <select id="statusFilter">
+          <option value="all">Tous les statuts</option>
+          <option value="valid">Validée</option>
+          <option value="pending">En attente</option>
+          <option value="refused">Refusée</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:42px;"><input type="checkbox" id="selectAll" aria-label="Tout sélectionner" /></th>
+              <th>Personne</th>
+              <th>Formation</th>
+              <th>Contact</th>
+              <th>Date</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty">Aucune inscription ne correspond à votre recherche.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const registrations = [
+      { id: 1, name: 'Claire Martin', email: 'claire.martin@email.fr', phone: '+33 6 12 34 56 78', formation: 'Pilotage stratégique & performance', date: '2026-10-03', status: 'valid', initials: 'CM' },
+      { id: 2, name: 'Amine Rahmoun', email: 'amine.rahmoun@gmail.com', phone: '+33 7 54 22 11 04', formation: 'Leadership & transformation digitale', date: '2026-10-04', status: 'pending', initials: 'AR' },
+      { id: 3, name: 'Sophie Laurent', email: 'sophie.laurent@proton.me', phone: '+33 6 87 48 10 22', formation: 'Gestion de projet premium', date: '2026-10-05', status: 'valid', initials: 'SL' },
+      { id: 4, name: 'Nicolas Dubois', email: 'n.dubois@entreprise.fr', phone: '+33 7 69 87 41 70', formation: 'Finance de direction', date: '2026-10-01', status: 'refused', initials: 'ND' },
+      { id: 5, name: 'Laura Moreau', email: 'laura.moreau@orange.fr', phone: '+33 6 42 27 81 39', formation: 'Communication & influence', date: '2026-10-06', status: 'pending', initials: 'LM' },
+      { id: 6, name: 'Hassan Benali', email: 'hassan.benali@affaires.com', phone: '+33 7 13 89 52 14', formation: 'Innovation et stratégie', date: '2026-10-02', status: 'valid', initials: 'HB' }
+    ];
+
+    const tableBody = document.getElementById('tableBody');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const emptyState = document.getElementById('emptyState');
+    const selectAll = document.getElementById('selectAll');
+
+    function renderStats() {
+      document.getElementById('totalCount').textContent = registrations.length;
+      document.getElementById('validCount').textContent = registrations.filter(item => item.status === 'valid').length;
+      document.getElementById('pendingCount').textContent = registrations.filter(item => item.status === 'pending').length;
+      document.getElementById('refusedCount').textContent = registrations.filter(item => item.status === 'refused').length;
+    }
+
+    function getStatusLabel(status) {
+      if (status === 'valid') return 'Validée';
+      if (status === 'pending') return 'En attente';
+      if (status === 'refused') return 'Refusée';
+      return status;
+    }
+
+    function getBadgeClass(status) {
+      if (status === 'valid') return 'valid';
+      if (status === 'pending') return 'pending';
+      if (status === 'refused') return 'refused';
+      return 'pending';
+    }
+
+    function formatDate(value) {
+      const date = new Date(value + 'T00:00:00');
+      return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+    }
+
+    function exportToExcel() {
+      const headers = ['ID', 'Nom', 'E-mail', 'Téléphone', 'Formation', 'Date d’inscription', 'Statut'];
+      const rows = getFilteredRegistrations().map(person => [
+        person.id,
+        person.name,
+        person.email,
+        person.phone,
+        person.formation,
+        formatDate(person.date),
+        getStatusLabel(person.status)
+      ]);
+      const escapeCell = value => `"${String(value).replace(/"/g, '""')}"`;
+      const csv = [headers, ...rows]
+        .map(row => row.map(escapeCell).join(';'))
+        .join('\r\n');
+      const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'inscriptions.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function getFilteredRegistrations() {
+      const query = searchInput.value.trim().toLowerCase();
+      const selectedStatus = statusFilter.value;
+      return registrations.filter(person => {
+        const matchesSearch = !query || person.name.toLowerCase().includes(query) || person.email.toLowerCase().includes(query) || person.formation.toLowerCase().includes(query);
+        const matchesStatus = selectedStatus === 'all' || person.status === selectedStatus;
+        return matchesSearch && matchesStatus;
+      });
+    }
+
+    function renderTable() {
+      const filtered = getFilteredRegistrations();
+      tableBody.innerHTML = '';
+      if (filtered.length === 0) emptyState.classList.add('show');
+      else emptyState.classList.remove('show');
+
+      filtered.forEach(person => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" class="row-check" data-id="${person.id}" aria-label="Sélectionner ${person.name}" /></td>
+          <td>
+            <div class="person">
+              <div class="avatar">${person.initials}</div>
+              <div>
+                <p class="name">${person.name}</p>
+                <div class="meta">ID #${person.id}</div>
+              </div>
+            </div>
+          </td>
+          <td>${person.formation}</td>
+          <td>
+            <div>${person.email}</div>
+            <div class="meta">${person.phone}</div>
+          </td>
+          <td>${formatDate(person.date)}</td>
+          <td><span class="badge ${getBadgeClass(person.status)}">${getStatusLabel(person.status)}</span></td>
+          <td>
+            <div class="actions">
+              <button class="table-btn" type="button" data-action="view" data-id="${person.id}">Voir</button>
+              <button class="table-btn delete" type="button" data-action="delete" data-id="${person.id}">Supprimer</button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+      refreshSelectionState();
+    }
+
+    function refreshSelectionState() {
+      const checks = [...document.querySelectorAll('.row-check')];
+      const selected = checks.filter(cb => cb.checked).length;
+      selectAll.checked = checks.length > 0 && selected === checks.length;
+      selectAll.indeterminate = selected > 0 && selected < checks.length;
+    }
+
+    function deletePerson(id) {
+      const idx = registrations.findIndex(item => item.id === id);
+      if (idx !== -1) {
+        registrations.splice(idx, 1);
+        renderAll();
+      }
+    }
+
+    function deleteSelectedPersons() {
+      const selected = [...document.querySelectorAll('.row-check:checked')];
+      const ids = selected.map(cb => Number(cb.dataset.id));
+      if (!ids.length) return;
+      ids.forEach(id => {
+        const idx = registrations.findIndex(item => item.id === id);
+        if (idx !== -1) registrations.splice(idx, 1);
+      });
+      renderAll();
+    }
+
+    function handleActions(event) {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const id = Number(button.dataset.id);
+      const action = button.dataset.action;
+      if (action === 'delete') deletePerson(id);
+      if (action === 'view') {
+        const person = registrations.find(item => item.id === id);
+        if (person) alert(`${person.name}\n${person.email}\n${person.formation}\nStatut : ${getStatusLabel(person.status)}`);
+      }
+    }
+
+    function renderAll() { renderStats(); renderTable(); }
+    searchInput.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+    document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+    document.addEventListener('change', event => {
+      if (event.target === selectAll) {
+        document.querySelectorAll('.row-check').forEach(cb => cb.checked = selectAll.checked);
+      }
+      if (event.target.classList.contains('row-check')) refreshSelectionState();
+    });
+    document.addEventListener('click', event => {
+      if (event.target.closest('#deleteSelectedBtn')) deleteSelectedPersons();
+      if (event.target.closest('[data-action]')) handleActions(event);
+    });
+
+    renderAll();
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="dashboard.js"></script></body>
+</html>
